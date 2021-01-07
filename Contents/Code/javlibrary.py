@@ -9,28 +9,28 @@ class JAVLibrary:
         CN = "cn"
         TW = "tw"
 
-    __BASE_URL = "http://www.javlibrary.com/"
-    __SEARCH_URL = "/vl_searchbyid.php?keyword="
-    __MOVIE_URL = "/?v="
-    __DMM_POSTER_URL = "http://pics.dmm.co.jp/mono/movie/adult/1{movie_id}/1{movie_id}ps.jpg"
-    __DMM_COVER_URL = "http://pics.dmm.co.jp/mono/movie/adult/1{movie_id}/1{movie_id}pl.jpg"
+    BASE_URL = "http://www.javlibrary.com/"
+    SEARCH_URL = "/vl_searchbyid.php?keyword="
+    MOVIE_URL = "/?v="
+    DMM_POSTER_URL = "http://pics.dmm.co.jp/mono/movie/adult/1{movie_id}/1{movie_id}ps.jpg"
+    DMM_COVER_URL = "http://pics.dmm.co.jp/mono/movie/adult/1{movie_id}/1{movie_id}pl.jpg"
 
     def __init__(self, language=Languages.CN):
         self.language = language
 
-    def __get_search_url(self, keyword):
-        return JAVLibrary.__BASE_URL + self.language + JAVLibrary.__SEARCH_URL + keyword
+    def get_search_url(self, keyword):
+        return JAVLibrary.BASE_URL + self.language + JAVLibrary.SEARCH_URL + keyword
 
-    def __get_movie_url(self, jav_library_id):
-        return JAVLibrary.__BASE_URL + self.language + JAVLibrary.__MOVIE_URL + jav_library_id
-
-    @staticmethod
-    def __get_poster_url(movie_id):
-        return JAVLibrary.__DMM_POSTER_URL.format(movie_id=movie_id)
+    def get_movie_url(self, jav_library_id):
+        return JAVLibrary.BASE_URL + self.language + JAVLibrary.MOVIE_URL + jav_library_id
 
     @staticmethod
-    def __get_cover_url(movie_id):
-        return JAVLibrary.__DMM_COVER_URL.format(movie_id=movie_id)
+    def get_poster_url(movie_id):
+        return JAVLibrary.DMM_POSTER_URL.format(movie_id=movie_id)
+
+    @staticmethod
+    def get_cover_url(movie_id):
+        return JAVLibrary.DMM_COVER_URL.format(movie_id=movie_id)
 
     def get_results(self, keyword):
         results = []
@@ -38,7 +38,7 @@ class JAVLibrary:
         # Bypass Cloudflare anti-bot page
         scraper = cloudscraper.create_scraper()
         # Search for keyword on javlibrary.com
-        web_data = scraper.get(self.__get_search_url(keyword)).content.decode("utf-8")
+        web_data = scraper.get(self.get_search_url(keyword)).content.decode("utf-8")
         soup = BeautifulSoup(web_data, "html.parser")
         # Redirected to the search result page
         if soup.find("div", "videos"):
@@ -76,7 +76,7 @@ class JAVLibrary:
         # Bypass Cloudflare anti-bot page
         scraper = cloudscraper.create_scraper()
         # Search for keyword on javlibrary.com
-        movie_data = scraper.get(self.__get_movie_url(movie_id)).content.decode("utf-8")
+        movie_data = scraper.get(self.get_movie_url(movie_id)).content.decode("utf-8")
         movie_soup = BeautifulSoup(movie_data, "html.parser")
         metadata["javlibrary_id"] = movie_id
         metadata["title"] = movie_soup.find("div", {"id": "video_title"}).find("a").text.strip()
@@ -86,8 +86,8 @@ class JAVLibrary:
             if tr_header == "识别码:":
                 movie_id = tr_text.text.strip().lower().replace("-", "")
                 metadata["id"] = movie_id
-                metadata["posters"] = [self.__get_poster_url(movie_id)]
-                metadata["thumbs"] = [self.__get_cover_url(movie_id)]
+                metadata["posters"] = [self.get_poster_url(movie_id)]
+                metadata["thumbs"] = [self.get_cover_url(movie_id)]
             if tr_header == "发行日期:":
                 metadata["originally_available_at"] = tr_text.text.strip()
                 metadata["year"] = int(tr_text.text.strip().split("-")[0])
