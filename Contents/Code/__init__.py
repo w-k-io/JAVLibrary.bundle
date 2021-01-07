@@ -3,7 +3,7 @@
 import os
 from datetime import datetime
 
-from Contents.Code.javlibrary import JAVLibrary
+from javlibrary import JAVLibrary
 
 
 class JavLibraryAgent(Agent.Movies):
