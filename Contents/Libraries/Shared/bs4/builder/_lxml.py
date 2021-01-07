@@ -8,11 +8,11 @@ __all__ = [
 
 try:
     from collections.abc import Callable # Python 3.6
-except ImportError as e:
+except ImportError , e:
     from collections import Callable
 
 from io import BytesIO
-from io import StringIO
+from StringIO import StringIO
 from lxml import etree
 from bs4.element import (
     Comment,
@@ -35,7 +35,7 @@ LXML = 'lxml'
 
 def _invert(d):
     "Invert a dictionary."
-    return dict((v,k) for k, v in list(d.items()))
+    return dict((v,k) for k, v in d.items())
 
 class LXMLTreeBuilderForXML(TreeBuilder):
     DEFAULT_PARSER_CLASS = etree.XMLParser
@@ -81,7 +81,7 @@ class LXMLTreeBuilderForXML(TreeBuilder):
 
         :param mapping: A dictionary mapping namespace prefixes to URIs.
         """
-        for key, value in list(mapping.items()):
+        for key, value in mapping.items():
             if key and key not in self.soup._namespaces:
                 # Let the BeautifulSoup object know about a new namespace.
                 # If there are multiple namespaces defined with the same
@@ -169,12 +169,12 @@ class LXMLTreeBuilderForXML(TreeBuilder):
         else:
             self.processing_instruction_class = XMLProcessingInstruction
 
-        if isinstance(markup, str):
+        if isinstance(markup, unicode):
             # We were given Unicode. Maybe lxml can parse Unicode on
             # this system?
             yield markup, None, document_declared_encoding, False
 
-        if isinstance(markup, str):
+        if isinstance(markup, unicode):
             # No, apparently not. Convert the Unicode to UTF-8 and
             # tell lxml to parse it as UTF-8.
             yield (markup.encode("utf8"), "utf8",
@@ -189,7 +189,7 @@ class LXMLTreeBuilderForXML(TreeBuilder):
     def feed(self, markup):
         if isinstance(markup, bytes):
             markup = BytesIO(markup)
-        elif isinstance(markup, str):
+        elif isinstance(markup, unicode):
             markup = StringIO(markup)
 
         # Call feed() at least once, even if the markup is empty,
@@ -204,7 +204,7 @@ class LXMLTreeBuilderForXML(TreeBuilder):
                 if len(data) != 0:
                     self.parser.feed(data)
             self.parser.close()
-        except (UnicodeDecodeError, LookupError, etree.ParserError) as e:
+        except (UnicodeDecodeError, LookupError, etree.ParserError), e:
             raise ParserRejectedMarkup(e)
 
     def close(self):
@@ -233,7 +233,7 @@ class LXMLTreeBuilderForXML(TreeBuilder):
             # Also treat the namespace mapping as a set of attributes on the
             # tag, so we can recreate it later.
             attrs = attrs.copy()
-            for prefix, namespace in list(nsmap.items()):
+            for prefix, namespace in nsmap.items():
                 attribute = NamespacedAttribute(
                     "xmlns", prefix, "http://www.w3.org/2000/xmlns/")
                 attrs[attribute] = namespace
@@ -242,7 +242,7 @@ class LXMLTreeBuilderForXML(TreeBuilder):
         # from lxml with namespaces attached to their names, and
         # turn then into NamespacedAttribute objects.
         new_attrs = {}
-        for attr, value in list(attrs.items()):
+        for attr, value in attrs.items():
             namespace, attr = self._getNsTag(attr)
             if namespace is None:
                 new_attrs[attr] = value
@@ -302,7 +302,7 @@ class LXMLTreeBuilderForXML(TreeBuilder):
 
     def test_fragment_to_document(self, fragment):
         """See `TreeBuilder`."""
-        return '<?xml version="1.0" encoding="utf-8"?>\n%s' % fragment
+        return u'<?xml version="1.0" encoding="utf-8"?>\n%s' % fragment
 
 
 class LXMLTreeBuilder(HTMLTreeBuilder, LXMLTreeBuilderForXML):
@@ -323,10 +323,10 @@ class LXMLTreeBuilder(HTMLTreeBuilder, LXMLTreeBuilderForXML):
             self.parser = self.parser_for(encoding)
             self.parser.feed(markup)
             self.parser.close()
-        except (UnicodeDecodeError, LookupError, etree.ParserError) as e:
+        except (UnicodeDecodeError, LookupError, etree.ParserError), e:
             raise ParserRejectedMarkup(e)
 
 
     def test_fragment_to_document(self, fragment):
         """See `TreeBuilder`."""
-        return '<html><body>%s</body></html>' % fragment
+        return u'<html><body>%s</body></html>' % fragment

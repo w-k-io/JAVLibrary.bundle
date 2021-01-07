@@ -8,11 +8,11 @@ __all__ = [
     'HTMLParserTreeBuilder',
     ]
 
-from html.parser import HTMLParser
+from HTMLParser import HTMLParser
 
 try:
-    from html.parser import HTMLParseError
-except ImportError as e:
+    from HTMLParser import HTMLParseError
+except ImportError, e:
     # HTMLParseError is removed in Python 3.5. Since it can never be
     # thrown in 3.5, we can just define our own class as a placeholder.
     class HTMLParseError(Exception):
@@ -219,14 +219,14 @@ class BeautifulSoupHTMLParser(HTMLParser):
                     continue
                 try:
                     data = bytearray([real_name]).decode(encoding)
-                except UnicodeDecodeError as e:
+                except UnicodeDecodeError, e:
                     pass
         if not data:
             try:
-                data = chr(real_name)
-            except (ValueError, OverflowError) as e:
+                data = unichr(real_name)
+            except (ValueError, OverflowError), e:
                 pass
-        data = data or "\N{REPLACEMENT CHARACTER}"
+        data = data or u"\N{REPLACEMENT CHARACTER}"
         self.handle_data(data)
 
     def handle_entityref(self, name):
@@ -353,7 +353,7 @@ class HTMLParserTreeBuilder(HTMLTreeBuilder):
          document to Unicode and parsing it. Each strategy will be tried 
          in turn.
         """
-        if isinstance(markup, str):
+        if isinstance(markup, unicode):
             # Parse Unicode as-is.
             yield (markup, None, None, False)
             return
@@ -376,7 +376,7 @@ class HTMLParserTreeBuilder(HTMLTreeBuilder):
         try:
             parser.feed(markup)
             parser.close()
-        except HTMLParseError as e:
+        except HTMLParseError, e:
             warnings.warn(RuntimeWarning(
                 "Python's built-in HTMLParser cannot parse the given document. This is not a bug in Beautiful Soup. The best solution is to install an external parser (lxml or html5lib), and use Beautiful Soup with that parser. See http://www.crummy.com/software/BeautifulSoup/bs4/doc/#installing-a-parser for help."))
             raise e

@@ -60,20 +60,20 @@ class HTMLParserTreeBuilderSmokeTest(SoupTest, HTMLTreeBuilderSmokeTest):
         # If you don't provide any particular value for
         # on_duplicate_attribute, later values replace earlier values.
         soup = self.soup(markup)
-        self.assertEqual("url3", soup.a['href'])
-        self.assertEqual(["cls"], soup.a['class'])
-        self.assertEqual("id", soup.a['id'])
+        self.assertEquals("url3", soup.a['href'])
+        self.assertEquals(["cls"], soup.a['class'])
+        self.assertEquals("id", soup.a['id'])
         
         # You can also get this behavior explicitly.
         def assert_attribute(on_duplicate_attribute, expected):
             soup = self.soup(
                 markup, on_duplicate_attribute=on_duplicate_attribute
             )
-            self.assertEqual(expected, soup.a['href'])
+            self.assertEquals(expected, soup.a['href'])
 
             # Verify that non-duplicate attributes are treated normally.
-            self.assertEqual(["cls"], soup.a['class'])
-            self.assertEqual("id", soup.a['id'])
+            self.assertEquals(["cls"], soup.a['class'])
+            self.assertEquals("id", soup.a['id'])
         assert_attribute(None, "url3")
         assert_attribute(BeautifulSoupHTMLParser.REPLACE, "url3")
 

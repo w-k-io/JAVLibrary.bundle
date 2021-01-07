@@ -10,7 +10,7 @@ XML or HTML to reflect a new encoding; that's the tree builder's job.
 __license__ = "MIT"
 
 import codecs
-from html.entities import codepoint2name
+from htmlentitydefs import codepoint2name
 import re
 import logging
 import string
@@ -22,7 +22,7 @@ try:
     #  PyPI package: cchardet
     import cchardet
     def chardet_dammit(s):
-        if isinstance(s, str):
+        if isinstance(s, unicode):
             return None
         return cchardet.detect(s)['encoding']
 except ImportError:
@@ -32,7 +32,7 @@ except ImportError:
         #  PyPI package: chardet
         import chardet
         def chardet_dammit(s):
-            if isinstance(s, str):
+            if isinstance(s, unicode):
                 return None
             return chardet.detect(s)['encoding']
         #import chardet.constants
@@ -53,14 +53,14 @@ except ImportError:
 
 # Build bytestring and Unicode versions of regular expressions for finding
 # a declared encoding inside an XML or HTML document.
-xml_encoding = '^\\s*<\\?.*encoding=[\'"](.*?)[\'"].*\\?>'
-html_meta = '<\\s*meta[^>]+charset\\s*=\\s*["\']?([^>]*?)[ /;\'">]'
+xml_encoding = u'^\\s*<\\?.*encoding=[\'"](.*?)[\'"].*\\?>'
+html_meta = u'<\\s*meta[^>]+charset\\s*=\\s*["\']?([^>]*?)[ /;\'">]'
 encoding_res = dict()
 encoding_res[bytes] = {
     'html' : re.compile(html_meta.encode("ascii"), re.I),
     'xml' : re.compile(xml_encoding.encode("ascii"), re.I),
 }
-encoding_res[str] = {
+encoding_res[unicode] = {
     'html' : re.compile(html_meta, re.I),
     'xml' : re.compile(xml_encoding, re.I)
 }
@@ -80,7 +80,7 @@ class EntitySubstitution(object):
         # entities, but that's a little tricky.
         extra = [(39, 'apos')]
         for codepoint, name in list(codepoint2name.items()) + extra:
-            character = chr(codepoint)
+            character = unichr(codepoint)
             if codepoint not in (34, 39):
                 # There's no point in turning the quotation mark into
                 # &quot; or the single quote into &apos;, unless it
@@ -323,7 +323,7 @@ class EncodingDetector:
         :return: A 2-tuple (modified data, implied encoding)
         """
         encoding = None
-        if isinstance(data, str):
+        if isinstance(data, unicode):
             # Unicode data cannot have a byte-order mark.
             return data, encoding
         if (len(data) >= 4) and (data[:2] == b'\xfe\xff') \
@@ -370,7 +370,7 @@ class EncodingDetector:
         if isinstance(markup, bytes):
             res = encoding_res[bytes]
         else:
-            res = encoding_res[str]
+            res = encoding_res[unicode]
 
         xml_re = res['xml']
         html_re = res['html']
@@ -431,9 +431,9 @@ class UnicodeDammit:
             markup, override_encodings, is_html, exclude_encodings)
 
         # Short-circuit if the data is in Unicode to begin with.
-        if isinstance(markup, str) or markup == '':
+        if isinstance(markup, unicode) or markup == '':
             self.markup = markup
-            self.unicode_markup = str(markup)
+            self.unicode_markup = unicode(markup)
             self.original_encoding = None
             return
 
@@ -523,7 +523,7 @@ class UnicodeDammit:
 
         :param encoding: The name of an encoding.
         """
-        return str(data, encoding, errors)
+        return unicode(data, encoding, errors)
 
     @property
     def declared_html_encoding(self):

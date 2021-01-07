@@ -51,7 +51,7 @@ from .element import (
 
 # The very first thing we do is give a useful error if someone is
 # running this code under Python 3 without converting it.
-'You are trying to run the Python 2 version of Beautiful Soup under Python 3. This will not work.'!='You need to convert the code, either by installing it (`python setup.py install`) or by running 2to3 (`2to3 -w bs4`).'
+'You are trying to run the Python 2 version of Beautiful Soup under Python 3. This will not work.'<>'You need to convert the code, either by installing it (`python setup.py install`) or by running 2to3 (`2to3 -w bs4`).'
 
 # Define some custom warnings.
 class GuessedAtParserWarning(UserWarning):
@@ -100,7 +100,7 @@ class BeautifulSoup(Tag):
     # Since BeautifulSoup subclasses Tag, it's possible to treat it as
     # a Tag with a .name. This name makes it clear the BeautifulSoup
     # object isn't a real markup tag.
-    ROOT_TAG_NAME = '[document]'
+    ROOT_TAG_NAME = u'[document]'
 
     # If the end-user gives no indication which tree builder they
     # want, look for one with these features.
@@ -217,7 +217,7 @@ class BeautifulSoup(Tag):
         from_encoding = from_encoding or deprecated_argument(
             "fromEncoding", "from_encoding")
 
-        if from_encoding and isinstance(markup, str):
+        if from_encoding and isinstance(markup, unicode):
             warnings.warn("You provided Unicode markup but also provided a value for from_encoding. Your from_encoding will be ignored.")
             from_encoding = None
 
@@ -234,7 +234,7 @@ class BeautifulSoup(Tag):
             builder_class = builder
             builder = None
         elif builder is None:
-            if isinstance(features, str):
+            if isinstance(features, basestring):
                 features = [features]
             if features is None or len(features) == 0:
                 features = self.DEFAULT_BUILDER_FEATURES
@@ -309,13 +309,13 @@ class BeautifulSoup(Tag):
             markup = markup.read()
         elif len(markup) <= 256 and (
                 (isinstance(markup, bytes) and not b'<' in markup)
-                or (isinstance(markup, str) and not '<' in markup)
+                or (isinstance(markup, unicode) and not u'<' in markup)
         ):
             # Print out warnings for a couple beginner problems
             # involving passing non-markup to Beautiful Soup.
             # Beautiful Soup will still parse the input as markup,
             # just in case that's what the user really wants.
-            if (isinstance(markup, str)
+            if (isinstance(markup, unicode)
                 and not os.path.supports_unicode_filenames):
                 possible_filename = markup.encode("utf8")
             else:
@@ -323,7 +323,7 @@ class BeautifulSoup(Tag):
             is_file = False
             try:
                 is_file = os.path.exists(possible_filename)
-            except Exception as e:
+            except Exception, e:
                 # This is almost certainly a problem involving
                 # characters not valid in filenames on this
                 # system. Just let it go.
@@ -353,9 +353,9 @@ class BeautifulSoup(Tag):
                 pass
 
         if not success:
-            other_exceptions = [str(e) for e in rejections]
+            other_exceptions = [unicode(e) for e in rejections]
             raise ParserRejectedMarkup(
-                "The markup you provided was rejected by the parser. Trying a different parser or a different encoding may help.\n\nOriginal exception(s) from parser:\n " + "\n ".join(other_exceptions)
+                u"The markup you provided was rejected by the parser. Trying a different parser or a different encoding may help.\n\nOriginal exception(s) from parser:\n " + "\n ".join(other_exceptions)
             )
 
         # Clear out the markup and remove the builder's circular
@@ -406,9 +406,9 @@ class BeautifulSoup(Tag):
         if isinstance(markup, bytes):
             space = b' '
             cant_start_with = (b"http:", b"https:")
-        elif isinstance(markup, str):
-            space = ' '
-            cant_start_with = ("http:", "https:")
+        elif isinstance(markup, unicode):
+            space = u' '
+            cant_start_with = (u"http:", u"https:")
         else:
             return
 
@@ -545,7 +545,7 @@ class BeautifulSoup(Tag):
         containerClass = self.string_container(containerClass)
         
         if self.current_data:
-            current_data = ''.join(self.current_data)
+            current_data = u''.join(self.current_data)
             # If whitespace is not preserved, and this string contains
             # nothing but ASCII spaces, replace it with a single space
             # or newline.
@@ -748,9 +748,9 @@ class BeautifulSoup(Tag):
                 eventual_encoding = None
             if eventual_encoding != None:
                 encoding_part = ' encoding="%s"' % eventual_encoding
-            prefix = '<?xml version="1.0"%s?>\n' % encoding_part
+            prefix = u'<?xml version="1.0"%s?>\n' % encoding_part
         else:
-            prefix = ''
+            prefix = u''
         if not pretty_print:
             indent_level = None
         else:
@@ -788,4 +788,4 @@ class FeatureNotFound(ValueError):
 if __name__ == '__main__':
     import sys
     soup = BeautifulSoup(sys.stdin)
-    print((soup.prettify()))
+    print(soup.prettify())

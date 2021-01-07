@@ -300,13 +300,13 @@ class TreeBuilder(object):
             universal = self.cdata_list_attributes.get('*', [])
             tag_specific = self.cdata_list_attributes.get(
                 tag_name.lower(), None)
-            for attr in list(attrs.keys()):
+            for attr in attrs.keys():
                 if attr in universal or (tag_specific and attr in tag_specific):
                     # We have a "class"-type attribute whose string
                     # value is a whitespace-separated list of
                     # values. Split it into a list.
                     value = attrs[attr]
-                    if isinstance(value, str):
+                    if isinstance(value, basestring):
                         values = nonwhitespace_re.findall(value)
                     else:
                         # html5lib sometimes calls setAttributes twice
@@ -496,7 +496,7 @@ class ParserRejectedMarkup(Exception):
         """
         if isinstance(message_or_exception, Exception):
             e = message_or_exception
-            message_or_exception = "%s: %s" % (e.__class__.__name__, str(e))
+            message_or_exception = "%s: %s" % (e.__class__.__name__, unicode(e))
         super(ParserRejectedMarkup, self).__init__(message_or_exception)
             
 # Builders are registered in reverse order of priority, so that custom

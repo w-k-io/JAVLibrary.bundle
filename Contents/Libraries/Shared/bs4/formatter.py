@@ -83,7 +83,7 @@ class Formatter(EntitySubstitution):
         """
         if not self.entity_substitution:
             return ns
-        from .element import NavigableString
+        from element import NavigableString
         if (isinstance(ns, NavigableString)
             and ns.parent is not None
             and ns.parent.name in self.cdata_containing_tags):

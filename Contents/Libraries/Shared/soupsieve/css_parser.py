@@ -1,11 +1,10 @@
 """CSS selector parser."""
+from __future__ import unicode_literals
 import re
-from functools import lru_cache
 from . import util
 from . import css_match as cm
 from . import css_types as ct
 from .util import SelectorSyntaxError
-import warnings
 
 UNICODE_REPLACEMENT_CHAR = 0xFFFD
 
@@ -60,8 +59,6 @@ PSEUDO_SIMPLE_NO_MATCH = {
 # Complex pseudo classes that take selector lists
 PSEUDO_COMPLEX = {
     ':contains',
-    ':-soup-contains',
-    ':-soup-contains-own',
     ':has',
     ':is',
     ':matches',
@@ -201,7 +198,7 @@ FLG_PLACEHOLDER_SHOWN = 0x200
 _MAXCACHE = 500
 
 
-@lru_cache(maxsize=_MAXCACHE)
+@util.lru_cache(maxsize=_MAXCACHE)
 def _cached_css_compile(pattern, namespaces, custom, flags):
     """Cached CSS compile."""
 
@@ -250,7 +247,7 @@ def css_unescape(content, string=False):
             codepoint = int(m.group(1)[1:], 16)
             if codepoint == 0:
                 codepoint = UNICODE_REPLACEMENT_CHAR
-            value = chr(codepoint)
+            value = util.uchr(codepoint)
         elif m.group(2):
             value = m.group(2)[1:]
         elif m.group(3):
@@ -274,7 +271,7 @@ def escape(ident):
         string.append('\\{}'.format(ident))
     else:
         for index, c in enumerate(ident):
-            codepoint = ord(c)
+            codepoint = util.uord(c)
             if codepoint == 0x00:
                 string.append('\ufffd')
             elif (0x01 <= codepoint <= 0x1F) or codepoint == 0x7F:
@@ -424,12 +421,7 @@ class CSSParser(object):
         SelectorPattern("pseudo_close", PAT_PSEUDO_CLOSE),
         SpecialPseudoPattern(
             (
-                (
-                    "pseudo_contains",
-                    (':contains', ':-soup-contains', ':-soup-contains-own'),
-                    PAT_PSEUDO_CONTAINS,
-                    SelectorPattern
-                ),
+                ("pseudo_contains", (':contains',), PAT_PSEUDO_CONTAINS, SelectorPattern),
                 ("pseudo_nth_child", (':nth-child', ':nth-last-child'), PAT_PSEUDO_NTH_CHILD, SelectorPattern),
                 ("pseudo_nth_type", (':nth-of-type', ':nth-last-of-type'), PAT_PSEUDO_NTH_TYPE, SelectorPattern),
                 ("pseudo_lang", (':lang',), PAT_PSEUDO_LANG, SelectorPattern),
@@ -808,14 +800,7 @@ class CSSParser(object):
     def parse_pseudo_contains(self, sel, m, has_selector):
         """Parse contains."""
 
-        pseudo = util.lower(css_unescape(m.group('name')))
-        if pseudo == ":contains":
-            warnings.warn(
-                "The pseudo class ':contains' is deprecated, ':-soup-contains' should be used moving forward.",
-                FutureWarning
-            )
-        contains_own = pseudo == ":-soup-contains-own"
-        values = css_unescape(m.group('values'))
+        values = m.group('values')
         patterns = []
         for token in RE_VALUES.finditer(values):
             if token.group('split'):
@@ -826,7 +811,7 @@ class CSSParser(object):
             else:
                 value = css_unescape(value)
             patterns.append(value)
-        sel.contains.append(ct.SelectorContains(tuple(patterns), contains_own))
+        sel.contains.append(ct.SelectorContains(tuple(patterns)))
         has_selector = True
         return has_selector
 
@@ -916,7 +901,7 @@ class CSSParser(object):
                 elif key == 'pseudo_class':
                     has_selector, is_html = self.parse_pseudo_class(sel, m, has_selector, iselector, is_html)
                 elif key == 'pseudo_element':
-                    raise NotImplementedError("Pseudo-element found at position {}".format(m.start(0)))
+                    raise NotImplementedError("Psuedo-element found at position {}".format(m.start(0)))
                 elif key == 'pseudo_contains':
                     has_selector = self.parse_pseudo_contains(sel, m, has_selector)
                 elif key in ('pseudo_nth_type', 'pseudo_nth_child'):
@@ -1094,23 +1079,23 @@ CSS_INDETERMINATE = CSSParser(
     This pattern must be at the end.
     Special logic is applied to the last selector.
     */
-    html|input[type="radio"][name]:not([name='']):not([checked])
+    html|input[type="radio"][name][name!='']:not([checked])
     '''
 ).process_selectors(flags=FLG_PSEUDO | FLG_HTML | FLG_INDETERMINATE)
 # CSS pattern for `:disabled`
 CSS_DISABLED = CSSParser(
     '''
-    html|*:is(input:not([type=hidden]), button, select, textarea, fieldset, optgroup, option, fieldset)[disabled],
+    html|*:is(input[type!=hidden], button, select, textarea, fieldset, optgroup, option, fieldset)[disabled],
     html|optgroup[disabled] > html|option,
-    html|fieldset[disabled] > html|*:is(input:not([type=hidden]), button, select, textarea, fieldset),
+    html|fieldset[disabled] > html|*:is(input[type!=hidden], button, select, textarea, fieldset),
     html|fieldset[disabled] >
-        html|*:not(legend:nth-of-type(1)) html|*:is(input:not([type=hidden]), button, select, textarea, fieldset)
+        html|*:not(legend:nth-of-type(1)) html|*:is(input[type!=hidden], button, select, textarea, fieldset)
     '''
 ).process_selectors(flags=FLG_PSEUDO | FLG_HTML)
 # CSS pattern for `:enabled`
 CSS_ENABLED = CSSParser(
     '''
-    html|*:is(input:not([type=hidden]), button, select, textarea, fieldset, optgroup, option, fieldset):not(:disabled)
+    html|*:is(input[type!=hidden], button, select, textarea, fieldset, optgroup, option, fieldset):not(:disabled)
     '''
 ).process_selectors(flags=FLG_PSEUDO | FLG_HTML)
 # CSS pattern for `:required`
@@ -1134,8 +1119,8 @@ CSS_PLACEHOLDER_SHOWN = CSSParser(
         [type=email],
         [type=password],
         [type=number]
-    )[placeholder]:not([placeholder='']):is(:not([value]), [value=""]),
-    html|textarea[placeholder]:not([placeholder=''])
+    )[placeholder][placeholder!='']:is(:not([value]), [value=""]),
+    html|textarea[placeholder][placeholder!='']
     '''
 ).process_selectors(flags=FLG_PSEUDO | FLG_HTML | FLG_PLACEHOLDER_SHOWN)
 # CSS pattern default for `:nth-child` "of S" feature

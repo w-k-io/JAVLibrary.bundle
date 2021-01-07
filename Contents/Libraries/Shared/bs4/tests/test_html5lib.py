@@ -5,7 +5,7 @@ import warnings
 try:
     from bs4.builder import HTML5TreeBuilder
     HTML5LIB_PRESENT = True
-except ImportError as e:
+except ImportError, e:
     HTML5LIB_PRESENT = False
 from bs4.element import SoupStrainer
 from bs4.testing import (
@@ -74,14 +74,14 @@ class HTML5LibBuilderSmokeTest(SoupTest, HTML5TreeBuilderSmokeTest):
     def test_reparented_markup(self):
         markup = '<p><em>foo</p>\n<p>bar<a></a></em></p>'
         soup = self.soup(markup)
-        self.assertEqual("<body><p><em>foo</em></p><em>\n</em><p><em>bar<a></a></em></p></body>", soup.body.decode())
+        self.assertEqual(u"<body><p><em>foo</em></p><em>\n</em><p><em>bar<a></a></em></p></body>", soup.body.decode())
         self.assertEqual(2, len(soup.find_all('p')))
 
 
     def test_reparented_markup_ends_with_whitespace(self):
         markup = '<p><em>foo</p>\n<p>bar<a></a></em></p>\n'
         soup = self.soup(markup)
-        self.assertEqual("<body><p><em>foo</em></p><em>\n</em><p><em>bar<a></a></em></p>\n</body>", soup.body.decode())
+        self.assertEqual(u"<body><p><em>foo</em></p><em>\n</em><p><em>bar<a></a></em></p>\n</body>", soup.body.decode())
         self.assertEqual(2, len(soup.find_all('p')))
 
     def test_reparented_markup_containing_identical_whitespace_nodes(self):
@@ -127,7 +127,7 @@ class HTML5LibBuilderSmokeTest(SoupTest, HTML5TreeBuilderSmokeTest):
     def test_foster_parenting(self):
         markup = b"""<table><td></tbody>A"""
         soup = self.soup(markup)
-        self.assertEqual("<body>A<table><tbody><tr><td></td></tr></tbody></table></body>", soup.body.decode())
+        self.assertEqual(u"<body>A<table><tbody><tr><td></td></tr></tbody></table></body>", soup.body.decode())
 
     def test_extraction(self):
         """
