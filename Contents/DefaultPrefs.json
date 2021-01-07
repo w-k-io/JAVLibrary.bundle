@@ -1,0 +1,8 @@
+[
+	{
+		"id": "javlibrary_language",
+		"label": "JAVLibrary Language",
+		"type": "text",
+		"default": "cn"
+	}
+]
