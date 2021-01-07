@@ -1,3 +1,5 @@
+# coding=utf-8
+
 import os
 from datetime import datetime
 
@@ -9,7 +11,8 @@ class JavLibraryAgent(Agent.Movies):
     languages = [
         Locale.Language.English,
         Locale.Language.Japanese,
-        Locale.Language.Chinese
+        Locale.Language.Chinese,
+        Locale.Language.NoLanguage
     ]
     accepts_from = [
         'com.plexapp.agents.localmedia'
