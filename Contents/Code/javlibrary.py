@@ -38,7 +38,9 @@ class JAVLibrary:
         # Bypass Cloudflare anti-bot page
         scraper = cloudscraper.create_scraper()
         # Search for keyword on javlibrary.com
-        web_data = scraper.get(self.get_search_url(keyword)).content.decode("utf-8")
+        url = self.get_search_url(keyword)
+        Log("Searching for matches from url: " + url)
+        web_data = scraper.get(url).content.decode("utf-8")
         soup = BeautifulSoup(web_data, "html.parser")
         # Redirected to the search result page
         if soup.find("div", "videos"):
@@ -55,6 +57,7 @@ class JAVLibrary:
         else:
             movie_id = soup.find("h3", "post-title").find("a")["href"][7:]
             results.append((movie_id, score))
+        return results
 
     def get_metadata(self, movie_id):
         # Result dict
@@ -62,9 +65,9 @@ class JAVLibrary:
             "javlibrary_id": "",
             "id": "",
             "title": "",
-            "originally_available_at": "",
-            "duration": "",
-            "rating": "",
+            "originally_available_at": "2000-01-01",
+            "duration": 0,
+            "rating": 0.0,
             "studio": "",
             "roles": [],
             "posters": [],
@@ -75,8 +78,10 @@ class JAVLibrary:
         }
         # Bypass Cloudflare anti-bot page
         scraper = cloudscraper.create_scraper()
-        # Search for keyword on javlibrary.com
-        movie_data = scraper.get(self.get_movie_url(movie_id)).content.decode("utf-8")
+        # Open movie url
+        url = self.get_movie_url(movie_id)
+        Log("Fetching metadata from: " + url)
+        movie_data = scraper.get(url).content.decode("utf-8")
         movie_soup = BeautifulSoup(movie_data, "html.parser")
         metadata["javlibrary_id"] = movie_id
         metadata["title"] = movie_soup.find("div", {"id": "video_title"}).find("a").text.strip()
@@ -104,6 +109,6 @@ class JAVLibrary:
                 for cast in tr_text.find_all("span", "cast"):
                     metadata["roles"].append(cast.text.strip())
             if tr_header == "使用者評價:":
-                metadata["rating"] = tr_text.find("span", "score").text.strip("()")
+                metadata["rating"] = float(tr_text.find("span", "score").text.strip("()"))
         print(metadata)
         return metadata
