@@ -1,5 +1,17 @@
+
 # JAVLibrary.bundle
  JAVLibrary metadata agent for Plex Media Server
+ 
+Movies must in the following structure
+
+```
+.
++-- TT-013
+|   +-- TT-013.mp4
++-- TT-014
+|   +-- TT-014-CD1.mp4
+|   +-- TT-014-CD2.mp4
+```
 
 ### Installation:
 1. Download the [zipped bundle](https://github.com/w-k-io/JAVLibrary.bundle/releases/latest/download/JAVLibrary.bundle.zip) from github,
