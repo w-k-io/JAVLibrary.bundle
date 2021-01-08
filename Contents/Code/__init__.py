@@ -13,9 +13,6 @@ def Start():
 class JavLibraryAgent(Agent.Movies):
     name = "JAVLibrary"
     languages = [
-        Locale.Language.English,
-        Locale.Language.Japanese,
-        Locale.Language.Chinese,
         Locale.Language.NoLanguage
     ]
     accepts_from = [
@@ -30,7 +27,7 @@ class JavLibraryAgent(Agent.Movies):
         media_path = media.items[0].parts[0].file
         folder_path = os.path.dirname(media_path)
         movie_name = self.get_movie_id_from_folder(folder_path)
-        javlibrary_api = JAVLibrary(Prefs["javlibrary_language"])
+        javlibrary_api = JAVLibrary(self.get_language(Prefs["javlibrary_language"]))
         search_results = javlibrary_api.get_results(movie_name)
         if search_results:
             for result in search_results:
@@ -45,7 +42,7 @@ class JavLibraryAgent(Agent.Movies):
                 )
 
     def update(self, metadata, media, lang):
-        javlibrary_api = JAVLibrary(Prefs["javlibrary_language"])
+        javlibrary_api = JAVLibrary(self.get_language(Prefs["javlibrary_language"]))
         movie_metadata = javlibrary_api.get_metadata(metadata.id)
         metadata.title = movie_metadata["title"]
         metadata.title_sort = movie_metadata["id"]
@@ -73,6 +70,16 @@ class JavLibraryAgent(Agent.Movies):
         for thumb in movie_metadata["thumbs"]:
             metadata.art[thumb] = Proxy.Preview(HTTP.Request(thumb).content)
         return metadata
+
+    @staticmethod
+    def get_language(language):
+        languages = {
+            "English": JAVLibrary.Languages.EN,
+            "日本語": JAVLibrary.Languages.JP,
+            "简体中文": JAVLibrary.Languages.CN,
+            "正體中文": JAVLibrary.Languages.TW
+        }
+        return languages[language]
 
     @staticmethod
     def get_movie_id_from_folder(folder_path):

@@ -1,3 +1,5 @@
+# coding=utf-8
+
 import cloudscraper
 from bs4 import BeautifulSoup
 
@@ -15,7 +17,7 @@ class JAVLibrary:
     DMM_POSTER_URL = "http://pics.dmm.co.jp/mono/movie/adult/1{movie_id}/1{movie_id}ps.jpg"
     DMM_COVER_URL = "http://pics.dmm.co.jp/mono/movie/adult/1{movie_id}/1{movie_id}pl.jpg"
 
-    def __init__(self, language=Languages.CN):
+    def __init__(self, language):
         self.language = language
 
     def get_search_url(self, keyword):
@@ -86,29 +88,29 @@ class JAVLibrary:
         metadata["javlibrary_id"] = movie_id
         metadata["title"] = movie_soup.find("div", {"id": "video_title"}).find("a").text.strip()
         for tr in movie_soup.find("div", {"id": "video_info"}).find_all("tr"):
-            tr_header = tr.find_all("td")[0].text
+            tr_header = tr.find_all("td")[0].text.strip()
             tr_text = tr.find_all("td")[1]
-            if tr_header == "识别码:":
+            if tr_header in ["ID:", "品番:", "识别码:", "識別碼:"]:
                 movie_id = tr_text.text.strip().lower().replace("-", "")
                 metadata["id"] = movie_id
                 metadata["posters"] = [self.get_poster_url(movie_id)]
                 metadata["thumbs"] = [self.get_cover_url(movie_id)]
-            if tr_header == "发行日期:":
+            if tr_header in ["Release Date:", "発売日:", "发行日期:", "發行日期:"]:
                 metadata["originally_available_at"] = tr_text.text.strip()
                 metadata["year"] = int(tr_text.text.strip().split("-")[0])
-            if tr_header == "长度:":
+            if tr_header in ["Length:", "収録時間:", "长度:", "長度:"]:
                 metadata["duration"] = int(tr_text.find("span", "text").text.strip())
-            if tr_header == "导演:":
+            if tr_header in ["Director:", "監督:", "导演:", "導演:"]:
                 metadata["directors"] = [tr_text.find("span", "director").text.strip()]
-            if tr_header == "制作商:":
+            if tr_header in ["Maker:", "メーカー:", "制作商:", "製作商:"]:
                 metadata["studio"] = tr_text.find("span", "maker").text.strip()
-            if tr_header == "类别:":
+            if tr_header in ["Genre(s):", "ジャンル:", "类别:", "類別:"]:
                 for genre in tr_text.find_all("span", "genre"):
                     metadata["genres"].append(genre.text.strip())
-            if tr_header == "演员:":
+            if tr_header in ["Cast:It's", "出演者:", "演员:", "演員:"]:
                 for cast in tr_text.find_all("span", "cast"):
                     metadata["roles"].append(cast.text.strip())
-            if tr_header == "使用者評價:":
+            if tr_header in ["User Rating:", "平均評価:", "使用者評價:", "使用者評價:"]:
                 metadata["rating"] = float(tr_text.find("span", "score").text.strip("()"))
         print(metadata)
         return metadata
