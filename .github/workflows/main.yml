@@ -7,11 +7,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout release branch
+    - name: Checkout main branch
       uses: actions/checkout@v2.3.4
-      with:
-        repository: 'w-k-io/JAVLibrary.bundle'
-        ref: 'release'
     - name: Create artifact
       uses: montudor/action-zip@v0.1.1
       with:
