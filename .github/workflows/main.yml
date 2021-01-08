@@ -1,0 +1,17 @@
+name: Create Release
+
+# Controls when the action will run. 
+on:
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@main
+    - name: Archive Release
+      uses: thedoctor0/zip-release@master
+      with:
+        filename: 'JAVLibrary.bundle.zip'
+        exclusions: '*.git* .gitignore .gitattributes'
