@@ -1,7 +1,6 @@
 name: Create Release
 
-on:
-  release:
+on: release
 
 jobs:
   build:
