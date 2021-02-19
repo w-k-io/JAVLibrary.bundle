@@ -75,9 +75,9 @@ class JavLibraryAgent(Agent.Movies):
     def get_language(language):
         languages = {
             "English": JAVLibrary.Languages.EN,
-            "日本語": JAVLibrary.Languages.JP,
-            "简体中文": JAVLibrary.Languages.CN,
-            "正體中文": JAVLibrary.Languages.TW
+            "Japanese": JAVLibrary.Languages.JP,
+            "Simplified Chinese": JAVLibrary.Languages.CN,
+            "Traditional Chinese": JAVLibrary.Languages.TW
         }
         return languages[language]
 

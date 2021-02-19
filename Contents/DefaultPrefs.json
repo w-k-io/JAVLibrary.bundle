@@ -5,9 +5,9 @@
     "type": "enum",
     "values": [
       "English",
-      "日本語",
-      "简体中文",
-      "正體中文"
+      "Japanese",
+      "Simplified Chinese",
+      "Traditional Chinese"
     ],
     "default": "English"
   }
