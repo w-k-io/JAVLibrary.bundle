@@ -51,13 +51,17 @@ class JAVLibrary:
                 for video in soup.find_all("div", "video"):
                     movie_id = video.find("a")["href"][5:]
                     results.append((movie_id, score))
-                    score -= 1
+                    score = score - 1
             # There is no match
             else:
                 return None
         # Redirected to the movie page
         else:
-            movie_id = soup.find("h3", "post-title").find("a")["href"][7:]
+            try:
+                movie_id = soup.find("h3", "post-title").find("a")["href"][7:]
+            except AttributeError:
+                Log("an exception occurred: " + url)
+                return results
             results.append((movie_id, score))
         return results
 
@@ -100,7 +104,7 @@ class JAVLibrary:
                 metadata["year"] = int(tr_text.text.strip().split("-")[0])
             if tr_header in ["Length:", "収録時間:", "长度:", "長度:"]:
                 metadata["duration"] = int(tr_text.find("span", "text").text.strip())
-            if tr_header in ["Director:", "監督:", "导演:", "導演:"]:
+            if tr_header in ["Director:", "監督:", "导演:", "導演:"] and tr_text.find("span", "director"):
                 metadata["directors"] = [tr_text.find("span", "director").text.strip()]
             if tr_header in ["Maker:", "メーカー:", "制作商:", "製作商:"]:
                 metadata["studio"] = tr_text.find("span", "maker").text.strip()
@@ -112,5 +116,7 @@ class JAVLibrary:
                     metadata["roles"].append(cast.text.strip())
             if tr_header in ["User Rating:", "平均評価:", "使用者評價:", "使用者評價:"]:
                 metadata["rating"] = float(tr_text.find("span", "score").text.strip("()"))
-        print(metadata)
+
+        Log("Fetching metadata success")
+
         return metadata
