@@ -2,6 +2,10 @@
 
 import os
 from datetime import datetime
+from urllib import quote
+
+from cached_property import cached_property
+import requests
 
 from javlibrary import JAVLibrary
 
@@ -60,7 +64,7 @@ class JavLibraryAgent(Agent.Movies):
             metadata.genres.add(genre)
         metadata.roles.clear()
         for role in movie_metadata["roles"]:
-            metadata.roles.new().name = role
+            self.get_role(metadata.roles.new(), role)
         for key in metadata.posters.keys():
             del metadata.posters[key]
         for poster in movie_metadata["posters"]:
@@ -88,3 +92,46 @@ class JavLibraryAgent(Agent.Movies):
         movie_name = folder_split[-1]
         Log("Found movie name from path: " + movie_name)
         return movie_name
+
+    @cached_property
+    def gfriends_map(self):
+        github_template = 'https://raw.githubusercontent.com/xinxin8816/gfriends/master/{}/{}/{}'
+        request_url = 'https://raw.githubusercontent.com/xinxin8816/gfriends/master/Filetree.json'
+
+        Log("start loading gfriend file tree")
+
+        response = requests.get(request_url)
+        if response.status_code != 200:
+            Log('request gfriend map failed {}'.format(response.status_code))
+            return {}
+
+        Log("gfriend file tree loaded success")
+
+        map_json = response.json()
+        map_json.pop('Filetree.json', None)
+        map_json.pop('README.md', None)
+        output = {}
+
+        # plex doesnt support fucking recursive call
+        first_lvls = map_json.keys()
+        for first in first_lvls:
+            second_lvls = map_json[first].keys()
+            for second in second_lvls:
+                for k, v in map_json[first][second].items():
+                    output[k[:-4]] = github_template.format(
+                        quote(first.encode("utf-8")),
+                        quote(second.encode("utf-8")),
+                        quote(v.encode("utf-8"))
+                    )
+
+        return output
+
+    def get_role(self, role, actor):
+        role.name = actor
+        for actorname in filter(None, actor.split(" ")):
+            role.photo = self.gfriends_map.get(actorname.upper(), "")
+            if role.photo:
+                break
+        Log(role.photo)
+        return role
+
