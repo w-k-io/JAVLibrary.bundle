@@ -93,8 +93,13 @@ class JAVLibrary:
             if tr_header in ["ID:", "品番:", "识别码:", "識別碼:"]:
                 movie_id = tr_text.text.strip().lower().replace("-", "")
                 metadata["id"] = movie_id
-                metadata["posters"] = [self.get_poster_url(movie_id)]
-                metadata["thumbs"] = [self.get_cover_url(movie_id)]
+                javlibrary_thumb = movie_soup.find("img", {"id": "video_jacket_img"})
+                if javlibrary_thumb and javlibrary_thumb["src"]:
+                    metadata["posters"] = ["http:" + javlibrary_thumb["src"].replace("pl.", "ps.")]
+                    metadata["thumbs"] = ["http:" + javlibrary_thumb["src"]]
+                else:
+                    metadata["posters"] = [self.get_poster_url(movie_id)]
+                    metadata["thumbs"] = [self.get_cover_url(movie_id)]
             if tr_header in ["Release Date:", "発売日:", "发行日期:", "發行日期:"]:
                 metadata["originally_available_at"] = tr_text.text.strip()
                 metadata["year"] = int(tr_text.text.strip().split("-")[0])
