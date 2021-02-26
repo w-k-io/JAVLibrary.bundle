@@ -50,15 +50,33 @@ class JAVLibrary:
             if soup.find("div", "video"):
                 for video in soup.find_all("div", "video"):
                     movie_id = video.find("a")["href"][5:]
-                    results.append((movie_id, score))
-                    score -= 1
+                    results.append(
+                        MetadataSearchResult(
+                            id=movie_id,
+                            name=video.find("a")["title"],
+                            year=None,
+                            score=score
+                        )
+                    )
+                    score = score - 1
             # There is no match
             else:
                 return None
         # Redirected to the movie page
         else:
-            movie_id = soup.find("h3", "post-title").find("a")["href"][7:]
-            results.append((movie_id, score))
+            try:
+                movie_id = soup.find("h3", "post-title").find("a")["href"][7:]
+            except AttributeError:
+                Log("An exception occurred: " + url)
+                return results
+            results.append(
+                MetadataSearchResult(
+                    id=movie_id,
+                    name=soup.find("div", {"id": "video_title"}).find("a").text.strip(),
+                    year=None,
+                    score=score
+                )
+            )
         return results
 
     def get_metadata(self, movie_id):
@@ -105,7 +123,7 @@ class JAVLibrary:
                 metadata["year"] = int(tr_text.text.strip().split("-")[0])
             if tr_header in ["Length:", "収録時間:", "长度:", "長度:"]:
                 metadata["duration"] = int(tr_text.find("span", "text").text.strip())
-            if tr_header in ["Director:", "監督:", "导演:", "導演:"]:
+            if tr_header in ["Director:", "監督:", "导演:", "導演:"] and tr_text.find("span", "director"):
                 metadata["directors"] = [tr_text.find("span", "director").text.strip()]
             if tr_header in ["Maker:", "メーカー:", "制作商:", "製作商:"]:
                 metadata["studio"] = tr_text.find("span", "maker").text.strip()
@@ -115,7 +133,12 @@ class JAVLibrary:
             if tr_header in ["Cast:It's", "出演者:", "演员:", "演員:"]:
                 for cast in tr_text.find_all("span", "cast"):
                     metadata["roles"].append(cast.text.strip())
-            if tr_header in ["User Rating:", "平均評価:", "使用者評價:", "使用者評價:"]:
-                metadata["rating"] = float(tr_text.find("span", "score").text.strip("()"))
-        print(metadata)
+            if tr_header in ["User Rating:", "平均評価:", "使用者评价:", "使用者評價:"]:
+                try:
+                    metadata["rating"] = float(tr_text.find("span", "score").text.strip("()"))
+                except ValueError:
+                    pass
+
+        Log("Fetching metadata success")
+
         return metadata
