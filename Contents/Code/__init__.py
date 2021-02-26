@@ -31,15 +31,8 @@ class JavLibraryAgent(Agent.Movies):
         search_results = javlibrary_api.get_results(movie_name)
         if search_results:
             for result in search_results:
-                results.Append(
-                    MetadataSearchResult(
-                        id=result[0],
-                        name=media.name,
-                        year=None,
-                        score=result[1],
-                        lang=lang
-                    )
-                )
+                result.lang = lang
+                results.Append(result)
 
     def update(self, metadata, media, lang):
         javlibrary_api = JAVLibrary(self.get_language(Prefs["javlibrary_language"]))

@@ -50,7 +50,14 @@ class JAVLibrary:
             if soup.find("div", "video"):
                 for video in soup.find_all("div", "video"):
                     movie_id = video.find("a")["href"][5:]
-                    results.append((movie_id, score))
+                    results.append(
+                        MetadataSearchResult(
+                            id=movie_id,
+                            name=video.find("a")["title"],
+                            year=None,
+                            score=score
+                        )
+                    )
                     score = score - 1
             # There is no match
             else:
@@ -60,9 +67,16 @@ class JAVLibrary:
             try:
                 movie_id = soup.find("h3", "post-title").find("a")["href"][7:]
             except AttributeError:
-                Log("an exception occurred: " + url)
+                Log("An exception occurred: " + url)
                 return results
-            results.append((movie_id, score))
+            results.append(
+                MetadataSearchResult(
+                    id=movie_id,
+                    name=soup.find("div", {"id": "video_title"}).find("a").text.strip(),
+                    year=None,
+                    score=score
+                )
+            )
         return results
 
     def get_metadata(self, movie_id):
@@ -114,8 +128,11 @@ class JAVLibrary:
             if tr_header in ["Cast:It's", "出演者:", "演员:", "演員:"]:
                 for cast in tr_text.find_all("span", "cast"):
                     metadata["roles"].append(cast.text.strip())
-            if tr_header in ["User Rating:", "平均評価:", "使用者評價:", "使用者評價:"]:
-                metadata["rating"] = float(tr_text.find("span", "score").text.strip("()"))
+            if tr_header in ["User Rating:", "平均評価:", "使用者评价:", "使用者評價:"]:
+                try:
+                    metadata["rating"] = float(tr_text.find("span", "score").text.strip("()"))
+                except ValueError:
+                    pass
 
         Log("Fetching metadata success")
 
